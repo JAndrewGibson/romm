@@ -17,6 +17,7 @@ export type RomUserSchema = {
     rating: number;
     difficulty: number;
     completion: number;
+    play_time_ms: number;
     status: (RomUserStatus | null);
 };
 

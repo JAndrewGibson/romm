@@ -4,6 +4,7 @@ import type {
   Body_refresh_retro_achievements_api_users__id__ra_refresh_post as RefreshRetroAchievementsInput,
   InviteLinkSchema,
   UserSchema,
+  UserFriendSchema,
 } from "@/__generated__";
 import api from "@/services/api";
 
@@ -50,6 +51,10 @@ async function registerUser(
 
 async function fetchUsers() {
   return api.get<UserSchema[]>("/users");
+}
+
+async function fetchFriends() {
+  return api.get<UserFriendSchema[]>("/users/friends");
 }
 
 async function fetchUser(user: Pick<UserSchema, "id">) {
@@ -110,6 +115,7 @@ export default {
   createInviteLink,
   registerUser,
   fetchUsers,
+  fetchFriends,
   fetchUser,
   fetchCurrentUser,
   updateUser,

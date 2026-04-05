@@ -212,6 +212,38 @@ def create_user_from_invite(
     return UserSchema.model_validate(created_user)
 
 
+from endpoints.responses.identity import InviteLinkSchema, UserSchema, UserFriendSchema
+from endpoints.responses.rom import SimpleRomSchema
+
+@protected_route(router.get, "/friends", [Scope.USERS_READ])
+def get_friends(request: Request) -> list[UserFriendSchema]:
+    """Get friends endpoint"""
+    from handler.database import db_rom_handler
+    from handler.database.base_handler import sync_session
+
+    users = db_user_handler.get_users()
+    response = []
+    
+    for u in users:
+        query, _ = db_rom_handler.get_roms_query(
+            user_id=u.id, 
+            order_by="last_played", 
+            order_dir="desc"
+        )
+        query = db_rom_handler.filter_roms(
+            query=query,
+            last_played=True,
+            user_id=u.id
+        )
+        
+        with sync_session.begin() as session:
+            recent_roms = session.scalars(query.limit(3)).all()
+            user_friend = UserFriendSchema.model_validate(u)
+            user_friend.recent_games = [SimpleRomSchema.from_orm_with_request(r, request) for r in recent_roms]
+            response.append(user_friend)
+            
+    return response
+
 @protected_route(router.get, "", [Scope.USERS_READ])
 def get_users(request: Request) -> list[UserSchema]:
     """Get all users endpoint

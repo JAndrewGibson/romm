@@ -15,9 +15,9 @@ import romApi from "@/services/api/rom";
 import storeAuth from "@/stores/auth";
 import type { DetailedRom } from "@/stores/roms";
 import {
-  getTextForStatus,
   getEmojiForStatus,
   getI18nKeyForStatus,
+  formatDuration,
 } from "@/utils";
 
 const { t } = useI18n();
@@ -286,6 +286,17 @@ watch(
                       </v-label>
                     </template>
                   </v-slider>
+                </v-col>
+              </v-row>
+              <v-row class="d-flex align-center mt-4" no-gutters>
+                <v-col cols="12" md="4">
+                  <v-label>{{ t("rom.playtime") }}</v-label>
+                </v-col>
+                <v-col cols="12" md="8">
+                  <v-chip class="ml-2" color="primary" variant="tonal" label>
+                    <v-icon start icon="mdi-clock-outline" />
+                    {{ formatDuration(romUser.play_time_ms) }}
+                  </v-chip>
                 </v-col>
               </v-row>
               <div class="d-flex align-center mt-4">

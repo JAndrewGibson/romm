@@ -159,6 +159,9 @@ class RomUserData(BaseModel):
         ge=0,
         le=100,
     )
+    play_time_ms: int | None = Field(
+        default=None, description="Total playtime in milliseconds.", ge=0
+    )
     status: RomUserStatus | None = Field(
         default=None, description="User play status for this rom."
     )
@@ -168,6 +171,9 @@ class RomUserUpdatePayload(BaseModel):
     data: RomUserData = Field(
         default_factory=RomUserData,
         description="Partial rom user data to update. Only provided fields will be updated.",
+    )
+    add_play_time_ms: int = Field(
+        default=0, description="Milliseconds to add to current play time.", ge=0
     )
     update_last_played: bool = Field(
         default=False, description="Set last played timestamp to now."
@@ -1554,6 +1560,9 @@ async def update_rom_user(
         cleaned_data.update({"last_played": datetime.now(timezone.utc)})
     elif payload.remove_last_played:
         cleaned_data.update({"last_played": None})
+
+    if payload.add_play_time_ms > 0:
+        cleaned_data["play_time_ms"] = (db_rom_user.play_time_ms or 0) + payload.add_play_time_ms
 
     rom_user = db_rom_handler.update_rom_user(db_rom_user.id, cleaned_data)
 

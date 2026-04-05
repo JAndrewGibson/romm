@@ -184,6 +184,21 @@ export function formatTimestamp(
 }
 
 /**
+ * Format milliseconds into a human-readable duration (Xh Ym or Ym), rounded to the minute.
+ *
+ * @param ms Number of milliseconds.
+ * @returns Formatted duration string.
+ */
+export function formatDuration(ms: number | undefined | null) {
+  if (!ms) return "0 min";
+  const minutes = Math.round(ms / 60000);
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return `${hours}h ${remainingMinutes}m`;
+}
+
+/**
  * Format a date to a relative time string (e.g., "3 days ago").
  * @param date The date to format.
  * @returns The relative time string.

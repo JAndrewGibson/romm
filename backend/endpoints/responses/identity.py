@@ -34,5 +34,11 @@ class UserSchema(BaseModel):
         from_attributes = True
 
 
+from endpoints.responses.rom import SimpleRomSchema
+
 class InviteLinkSchema(BaseModel):
     token: str
+
+
+class UserFriendSchema(UserSchema):
+    recent_games: list[SimpleRomSchema] = []

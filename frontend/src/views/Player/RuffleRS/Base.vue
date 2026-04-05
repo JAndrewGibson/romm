@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { useLocalStorage } from "@vueuse/core";
-import { nextTick, onMounted, ref } from "vue";
+import { nextTick, onMounted, ref, watch, onBeforeUnmount } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
 import RomListItem from "@/components/common/Game/ListItem.vue";
 import { ROUTES } from "@/plugins/router";
 import romApi from "@/services/api/rom";
 import type { DetailedRom } from "@/stores/roms";
+import storeAuth from "@/stores/auth";
 import type { RuffleSourceAPI } from "@/types/ruffle";
 import { getDownloadPath } from "@/utils";
 
@@ -82,6 +83,34 @@ function onBackgroundColorChange() {
 async function onlyQuit() {
   window.history.back();
 }
+
+const auth = storeAuth();
+const playtimeInterval = ref<number | null>(null);
+
+watch(gameRunning, (newValue) => {
+  if (newValue && rom.value) {
+    playtimeInterval.value = window.setInterval(() => {
+      if (rom.value && auth.scopes.includes("roms.user.write")) {
+        romApi.updateUserRomProps({
+          romId: rom.value.id,
+          updateLastPlayed: true,
+          addPlayTimeMs: 60000,
+        });
+      }
+    }, 60000);
+  } else {
+    if (playtimeInterval.value) {
+      window.clearInterval(playtimeInterval.value);
+      playtimeInterval.value = null;
+    }
+  }
+});
+
+onBeforeUnmount(() => {
+  if (playtimeInterval.value) {
+    window.clearInterval(playtimeInterval.value);
+  }
+});
 
 onMounted(async () => {
   const romResponse = await romApi.getRom({

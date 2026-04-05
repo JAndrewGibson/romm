@@ -257,7 +257,31 @@ onMounted(async () => {
     biosFromStorage ?? biosFromConfig ?? biosFromSingleOption ?? null;
 });
 
+const playtimeInterval = ref<number | null>(null);
+
+watch(gameRunning, (newValue) => {
+  if (newValue && rom.value) {
+    playtimeInterval.value = window.setInterval(() => {
+      if (rom.value && auth.scopes.includes("roms.user.write")) {
+        romApi.updateUserRomProps({
+          romId: rom.value.id,
+          updateLastPlayed: true,
+          addPlayTimeMs: 60000,
+        });
+      }
+    }, 60000);
+  } else {
+    if (playtimeInterval.value) {
+      window.clearInterval(playtimeInterval.value);
+      playtimeInterval.value = null;
+    }
+  }
+});
+
 onBeforeUnmount(async () => {
+  if (playtimeInterval.value) {
+    window.clearInterval(playtimeInterval.value);
+  }
   window.EJS_emulator?.callEvent("exit");
   emitter?.off("saveSelected", selectSave);
   emitter?.off("stateSelected", selectState);

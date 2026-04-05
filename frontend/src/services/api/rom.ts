@@ -543,16 +543,19 @@ async function updateUserRomProps({
   data,
   updateLastPlayed = false,
   removeLastPlayed = false,
+  addPlayTimeMs = undefined,
 }: {
   romId: number;
-  data: Partial<RomUserSchema>;
+  data?: Partial<RomUserSchema>;
   updateLastPlayed?: boolean;
   removeLastPlayed?: boolean;
+  addPlayTimeMs?: number;
 }) {
   const payload: RomUserUpdatePayload = {
     data: data,
     update_last_played: updateLastPlayed,
     remove_last_played: removeLastPlayed,
+    add_play_time_ms: addPlayTimeMs,
   };
   return api.put<RomUserSchema>(`/roms/${romId}/props`, payload);
 }

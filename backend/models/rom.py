@@ -498,6 +498,7 @@ class RomUser(BaseModel):
     rating: Mapped[int] = mapped_column(default=0)
     difficulty: Mapped[int] = mapped_column(default=0)
     completion: Mapped[int] = mapped_column(default=0)
+    play_time_ms: Mapped[int] = mapped_column(BigInteger(), default=0)
     status: Mapped[RomUserStatus | None] = mapped_column(
         Enum(RomUserStatus), default=None
     )

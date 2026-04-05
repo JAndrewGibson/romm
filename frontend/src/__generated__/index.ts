@@ -144,3 +144,4 @@ export type { WebrcadeFeedCategorySchema } from './models/WebrcadeFeedCategorySc
 export type { WebrcadeFeedItemPropsSchema } from './models/WebrcadeFeedItemPropsSchema';
 export type { WebrcadeFeedItemSchema } from './models/WebrcadeFeedItemSchema';
 export type { WebrcadeFeedSchema } from './models/WebrcadeFeedSchema';
+export type { UserFriendSchema } from './models/UserFriendSchema';

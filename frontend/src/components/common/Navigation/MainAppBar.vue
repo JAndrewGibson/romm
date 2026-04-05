@@ -7,6 +7,7 @@ import UploadRomDialog from "@/components/common/Game/Dialog/UploadRom.vue";
 import CollectionsBtn from "@/components/common/Navigation/CollectionsBtn.vue";
 import CollectionsDrawer from "@/components/common/Navigation/CollectionsDrawer.vue";
 import ConsoleModeBtn from "@/components/common/Navigation/ConsoleModeBtn.vue";
+import FriendsBtn from "@/components/common/Navigation/FriendsBtn.vue";
 import HomeBtn from "@/components/common/Navigation/HomeBtn.vue";
 import PatcherBtn from "@/components/common/Navigation/PatcherBtn.vue";
 import PlatformsBtn from "@/components/common/Navigation/PlatformsBtn.vue";
@@ -63,6 +64,7 @@ function collapse() {
       <SearchBtn with-tag />
       <PlatformsBtn with-tag />
       <CollectionsBtn with-tag />
+      <FriendsBtn with-tag />
       <ScanBtn with-tag />
       <ConsoleModeBtn with-tag />
     </v-bottom-navigation>
@@ -107,6 +109,7 @@ function collapse() {
     <SearchBtn :with-tag="!mainBarCollapsed" rounded class="mt-4" block />
     <PlatformsBtn :with-tag="!mainBarCollapsed" rounded class="mt-2" block />
     <CollectionsBtn :with-tag="!mainBarCollapsed" rounded class="mt-2" block />
+    <FriendsBtn :with-tag="!mainBarCollapsed" rounded class="mt-2" block />
     <ScanBtn :with-tag="!mainBarCollapsed" rounded class="mt-2" block />
     <ConsoleModeBtn :with-tag="!mainBarCollapsed" rounded class="mt-2" block />
 

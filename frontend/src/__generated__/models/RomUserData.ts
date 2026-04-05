@@ -33,6 +33,10 @@ export type RomUserData = {
      */
     completion?: (number | null);
     /**
+     * Total playtime in milliseconds.
+     */
+    play_time_ms?: (number | null);
+    /**
      * User play status for this rom.
      */
     status?: (RomUserStatus | null);

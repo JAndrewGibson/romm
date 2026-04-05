@@ -9,6 +9,10 @@ export type RomUserUpdatePayload = {
      */
     data?: RomUserData;
     /**
+     * Milliseconds to add to current play time.
+     */
+    add_play_time_ms?: number;
+    /**
      * Set last played timestamp to now.
      */
     update_last_played?: boolean;

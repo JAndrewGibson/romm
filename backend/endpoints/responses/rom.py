@@ -116,6 +116,7 @@ def rom_user_schema_factory() -> RomUserSchema:
         rating=0,
         difficulty=0,
         completion=0,
+        play_time_ms=0,
         status=None,
     )
 
@@ -134,6 +135,7 @@ class RomUserSchema(BaseModel):
     rating: int
     difficulty: int
     completion: int
+    play_time_ms: int
     status: RomUserStatus | None
 
     class Config:
