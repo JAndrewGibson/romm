@@ -85,6 +85,8 @@ async function updateUser({
       role: attrs.role,
       ra_username: attrs.ra_username,
       ui_settings: attrs.ui_settings,
+      playtime_tracking_enabled: attrs.playtime_tracking_enabled,
+      friends_tab_visible: attrs.friends_tab_visible,
     },
     {
       headers: {
