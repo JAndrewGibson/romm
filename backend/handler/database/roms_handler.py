@@ -25,6 +25,7 @@ from sqlalchemy.orm import (
     Query,
     QueryableAttribute,
     Session,
+    contains_eager,
     joinedload,
     load_only,
     noload,
@@ -1455,8 +1456,8 @@ class DBRomsHandler(DBBaseHandler):
         return session.scalars(
             select(Rom)
             .join(RomUser, and_(RomUser.rom_id == Rom.id, RomUser.user_id == user_id))
-            .options(selectinload(Rom.rom_users))
+            .options(contains_eager(Rom.rom_users))
             .filter(RomUser.play_time_ms > 0)
             .order_by(RomUser.play_time_ms.desc())
             .limit(limit)
-        ).all()
+        ).unique().all()

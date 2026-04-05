@@ -222,17 +222,17 @@ from endpoints.responses.identity import (
 )
 from endpoints.responses.rom import SimpleRomSchema
 
-@protected_route(router.get, "/{id}/stats", [Scope.ME_READ])
-def get_user_stats(request: Request, id: int) -> UserStatsSchema:
+@protected_route(router.get, "/{user_id}/stats", [Scope.ME_READ])
+def get_user_stats(request: Request, user_id: int) -> UserStatsSchema:
     """Get user stats endpoint"""
     from handler.database import db_rom_handler
 
-    user = db_user_handler.get_user(id)
-    if not user:
+    target_user = db_user_handler.get_user(user_id)
+    if not target_user:
         raise HTTPException(status_code=404, detail="User not found")
 
     # Only admins or the user themselves can see their stats
-    if request.user.id != id and request.user.role != Role.ADMIN:
+    if request.user.id != user_id and request.user.role != Role.ADMIN:
          raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
 
     # Global check
@@ -240,25 +240,26 @@ def get_user_stats(request: Request, id: int) -> UserStatsSchema:
         return UserStatsSchema(total_play_time_ms=0, top_played_roms=[])
 
     # User check
-    if not user.playtime_tracking_enabled:
+    if not target_user.playtime_tracking_enabled:
         return UserStatsSchema(total_play_time_ms=0, top_played_roms=[])
 
-    top_roms = db_rom_handler.get_top_played_roms(id, limit=5)
+    top_roms = db_rom_handler.get_top_played_roms(user_id, limit=5)
     
     top_played_schemas = []
     for r in top_roms:
         # Pydantic may not auto-populate play_time_ms from database since it's on a different model (RomUser)
         # We manually fetch it from the pre-loaded rom_users
-        rom_user = next((ru for ru in r.rom_users if ru.user_id == id), None)
+        rom_user = next((ru for ru in r.rom_users if ru.user_id == user_id), None)
         play_time_ms = rom_user.play_time_ms if rom_user else 0
 
+        # We need to manually inject play_time_ms into the schema dict for validation
         schema_dict = SimpleRomSchema.from_orm_with_request(r, request).model_dump()
         schema_dict["play_time_ms"] = play_time_ms
         
         top_played_schemas.append(UserPlayedRomSchema.model_validate(schema_dict))
 
     return UserStatsSchema(
-        total_play_time_ms=db_rom_handler.get_total_playtime(id),
+        total_play_time_ms=db_rom_handler.get_total_playtime(user_id),
         top_played_roms=top_played_schemas
     )
 
