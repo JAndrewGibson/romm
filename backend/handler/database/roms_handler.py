@@ -1443,3 +1443,20 @@ class DBRomsHandler(DBBaseHandler):
             )
             or 0
         )
+
+    @begin_session
+    def get_top_played_roms(
+        self,
+        user_id: int,
+        limit: int = 5,
+        session: Session = None,  # type: ignore
+    ) -> Sequence[Rom]:
+        """Get the top played ROMs for a user, sorted by playtime descending."""
+        return session.scalars(
+            select(Rom)
+            .join(RomUser, and_(RomUser.rom_id == Rom.id, RomUser.user_id == user_id))
+            .options(selectinload(Rom.rom_users))
+            .filter(RomUser.play_time_ms > 0)
+            .order_by(RomUser.play_time_ms.desc())
+            .limit(limit)
+        ).all()

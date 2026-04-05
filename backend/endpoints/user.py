@@ -212,8 +212,46 @@ def create_user_from_invite(
     return UserSchema.model_validate(created_user)
 
 
-from endpoints.responses.identity import InviteLinkSchema, UserSchema, UserFriendSchema
+from endpoints.responses.identity import (
+    InviteLinkSchema,
+    UserSchema,
+    UserFriendSchema,
+    UserStatsSchema,
+    UserPlayedRomSchema
+)
 from endpoints.responses.rom import SimpleRomSchema
+
+@protected_route(router.get, "/{id}/stats", [Scope.ME_READ])
+def get_user_stats(request: Request, id: int) -> UserStatsSchema:
+    """Get user stats endpoint"""
+    from handler.database import db_rom_handler
+
+    user = db_user_handler.get_user(id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Only admins or the user themselves can see their stats
+    if request.user.id != id and request.user.role != Role.ADMIN:
+         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+
+    top_roms = db_rom_handler.get_top_played_roms(id, limit=5)
+    
+    top_played_schemas = []
+    for r in top_roms:
+        # Pydantic may not auto-populate play_time_ms from database since it's on a different model (RomUser)
+        # We manually fetch it from the pre-loaded rom_users
+        rom_user = next((ru for ru in r.rom_users if ru.user_id == id), None)
+        play_time_ms = rom_user.play_time_ms if rom_user else 0
+
+        schema_dict = SimpleRomSchema.from_orm_with_request(r, request).model_dump()
+        schema_dict["play_time_ms"] = play_time_ms
+        
+        top_played_schemas.append(UserPlayedRomSchema.model_validate(schema_dict))
+
+    return UserStatsSchema(
+        total_play_time_ms=db_rom_handler.get_total_playtime(id),
+        top_played_roms=top_played_schemas
+    )
 
 @protected_route(router.get, "/friends", [Scope.USERS_READ])
 def get_friends(request: Request) -> list[UserFriendSchema]:

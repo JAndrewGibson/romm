@@ -10,7 +10,8 @@ import storeAuth from "@/stores/auth";
 import storeUsers from "@/stores/users";
 import type { Events } from "@/types/emitter";
 import type { UserItem } from "@/types/user";
-import { defaultAvatarPath, getRoleIcon } from "@/utils";
+import type { UserStatsSchema } from "@/__generated__";
+import { defaultAvatarPath, getRoleIcon, formatDuration } from "@/utils";
 
 const { t } = useI18n();
 const auth = storeAuth();
@@ -18,6 +19,7 @@ const { user } = storeToRefs(auth);
 const userToEdit = ref<UserItem | null>(null);
 const usersStore = storeUsers();
 const imagePreviewUrl = ref<string | undefined>("");
+const userStats = ref<UserStatsSchema | null>(null);
 const emitter = inject<Emitter<Events>>("emitter");
 
 function triggerFileInput() {
@@ -69,10 +71,16 @@ function editUser() {
   emitter?.emit("refreshDrawer", null);
 }
 
-onMounted(() => {
+onMounted(async () => {
   userToEdit.value = { ...user.value, password: "", avatar: undefined };
   if (userToEdit.value) {
     document.title = `${userToEdit.value.username} | Profile`;
+    try {
+      const statsResponse = await userApi.fetchUserStats(userToEdit.value.id);
+      userStats.value = statsResponse.data;
+    } catch (error) {
+      console.error("Failed to fetch user stats:", error);
+    }
   }
 });
 
@@ -199,5 +207,53 @@ onUnmounted(() => {
     </RSection>
 
     <RetroAchievements class="mx-4 mt-8" />
+
+    <RSection v-if="userStats && userStats.top_played_roms.length" class="ma-4 mt-8" icon="mdi-chart-bar" title="Stats">
+      <template #content>
+        <div class="pa-4">
+          <div v-for="(game, index) in userStats.top_played_roms" :key="game.id" class="mb-6">
+            <div class="d-flex justify-space-between mb-1">
+              <span class="text-subtitle-1 font-weight-bold">{{ game.name }}</span>
+              <span class="text-subtitle-2 opacity-70">{{ formatDuration(game.play_time_ms) }}</span>
+            </div>
+            <div class="d-flex align-center">
+              <div class="flex-grow-1 mr-4">
+                <v-progress-linear
+                  :model-value="(game.play_time_ms / userStats.top_played_roms[0].play_time_ms) * 100"
+                  height="32"
+                  rounded
+                  color="primary"
+                  class="stats-bar elevation-2"
+                >
+                  <template #default="{ value }">
+                    <span class="ml-4 text-caption font-weight-black opacity-50">{{ Math.ceil(value) }}%</span>
+                  </template>
+                </v-progress-linear>
+              </div>
+              <v-avatar size="64" rounded="lg" class="elevation-4 border-sm">
+                <v-img :src="game.merged_screenshots?.[0] || game.url_cover" cover />
+              </v-avatar>
+            </div>
+          </div>
+        </div>
+      </template>
+    </RSection>
+    <RSection v-else-if="userStats" class="ma-4 mt-8" icon="mdi-chart-bar" title="Stats">
+      <template #content>
+        <div class="pa-8 text-center text-medium-emphasis">
+          <v-icon size="x-large" class="mb-2 opacity-30">mdi-timer-off-outline</v-icon>
+          <p>No playtime data available yet.</p>
+        </div>
+      </template>
+    </RSection>
   </template>
 </template>
+
+<style scoped>
+.stats-bar :deep(.v-progress-linear__background) {
+  opacity: 0.1 !important;
+}
+.stats-bar :deep(.v-progress-linear__determinate) {
+  transition: width 1s ease-in-out;
+}
+</style>

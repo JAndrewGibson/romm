@@ -145,3 +145,5 @@ export type { WebrcadeFeedItemPropsSchema } from './models/WebrcadeFeedItemProps
 export type { WebrcadeFeedItemSchema } from './models/WebrcadeFeedItemSchema';
 export type { WebrcadeFeedSchema } from './models/WebrcadeFeedSchema';
 export type { UserFriendSchema } from './models/UserFriendSchema';
+export type { UserPlayedRomSchema } from './models/UserPlayedRomSchema';
+export type { UserStatsSchema } from './models/UserStatsSchema';

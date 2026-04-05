@@ -51,6 +51,13 @@ class InviteLinkSchema(BaseModel):
     token: str
 
 
+class UserPlayedRomSchema(SimpleRomSchema):
+    play_time_ms: int
+
+class UserStatsSchema(BaseModel):
+    total_play_time_ms: int
+    top_played_roms: list[UserPlayedRomSchema]
+
 class UserFriendSchema(UserSchema):
     recent_games: list[SimpleRomSchema] = []
     play_time_ms: int = 0

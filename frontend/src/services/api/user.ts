@@ -5,6 +5,7 @@ import type {
   InviteLinkSchema,
   UserSchema,
   UserFriendSchema,
+  UserStatsSchema,
 } from "@/__generated__";
 import api from "@/services/api";
 
@@ -110,6 +111,10 @@ async function refreshRetroAchievements({
   return api.post<void>(`/users/${id}/ra/refresh`, payload);
 }
 
+async function fetchUserStats(userId: number) {
+  return api.get<UserStatsSchema>(`/users/${userId}/stats`);
+}
+
 export default {
   createUser,
   createInviteLink,
@@ -121,4 +126,5 @@ export default {
   updateUser,
   deleteUser,
   refreshRetroAchievements,
+  fetchUserStats,
 };
