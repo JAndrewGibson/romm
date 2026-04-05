@@ -240,6 +240,7 @@ def get_friends(request: Request) -> list[UserFriendSchema]:
             recent_roms = session.scalars(query.limit(3)).all()
             user_friend = UserFriendSchema.model_validate(u)
             user_friend.recent_games = [SimpleRomSchema.from_orm_with_request(r, request) for r in recent_roms]
+            user_friend.play_time_ms = db_rom_handler.get_total_playtime(u.id)
             response.append(user_friend)
             
     return response

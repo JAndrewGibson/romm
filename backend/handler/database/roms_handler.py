@@ -1428,3 +1428,18 @@ class DBRomsHandler(DBBaseHandler):
         )
 
         return self._collect_filter_values(session, statement)
+    @begin_session
+    def get_total_playtime(
+        self,
+        user_id: int,
+        session: Session = None,  # type: ignore
+    ) -> int:
+        """Get the total playtime of all roms in the database for a user, in milliseconds."""
+        return (
+            session.scalar(
+                select(func.sum(RomUser.play_time_ms))
+                .select_from(RomUser)
+                .filter(RomUser.user_id == user_id)
+            )
+            or 0
+        )

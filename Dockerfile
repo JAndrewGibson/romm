@@ -57,6 +57,8 @@ RUN npm install
 # Set working directory
 WORKDIR /app
 
+ENV ROMM_BASE_PATH=/app/romm_data
+
 # Install uv for the non-root user
 COPY --from=ghcr.io/astral-sh/uv:0.11.2 /uv /uvx /usr/local/bin/
 
@@ -72,6 +74,7 @@ RUN uv sync --all-extras
 # Copy source code
 COPY backend /app/backend
 COPY frontend /app/frontend
+COPY examples /app/examples
 COPY watcher.py /app/watcher.py
 
 ENV PATH="/app/.venv/bin:${PATH}"

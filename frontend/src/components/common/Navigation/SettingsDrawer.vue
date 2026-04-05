@@ -89,11 +89,7 @@ function onClose() {
     <v-list tabindex="-1" class="pa-0">
       <v-list-img>
         <v-img
-          :src="
-            user?.avatar_path
-              ? `/assets/romm/assets/${user?.avatar_path}?ts=${user?.updated_at}`
-              : defaultAvatarPath
-          "
+          :src="user?.avatar_url || defaultAvatarPath"
           cover
           class="rounded"
         />

@@ -7,4 +7,5 @@ import type { SimpleRomSchema } from './SimpleRomSchema';
 
 export type UserFriendSchema = UserSchema & {
     recent_games: Array<SimpleRomSchema>;
+    play_time_ms: number;
 };

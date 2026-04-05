@@ -4,6 +4,24 @@ set -e
 
 echo "Starting entrypoint script..."
 
+# Set ROMM_BASE_PATH if not already set (default to /romm)
+export ROMM_BASE_PATH="${ROMM_BASE_PATH:-/romm}"
+
+echo "ROMM_BASE_PATH is set to ${ROMM_BASE_PATH}"
+
+# Ensure necessary directories exist
+mkdir -p "${ROMM_BASE_PATH}/config"
+mkdir -p "${ROMM_BASE_PATH}/library"
+mkdir -p "${ROMM_BASE_PATH}/resources"
+mkdir -p "${ROMM_BASE_PATH}/assets"
+mkdir -p "${ROMM_BASE_PATH}/database"
+
+# Copy default config if it doesn't exist
+if [[ ! -f "${ROMM_BASE_PATH}/config/config.yml" ]]; then
+	echo "Config file not found, copying example config..."
+	cp /app/examples/config.example.yml "${ROMM_BASE_PATH}/config/config.yml"
+fi
+
 # Create symlinks for frontend
 for subfolder in assets resources; do
 	if [[ -L /app/frontend/assets/romm/${subfolder} ]]; then
@@ -76,7 +94,7 @@ cd /app
 watchfiles \
 	--target-type command \
 	'uv run python watcher.py' \
-	/romm_data/library &
+	"${ROMM_BASE_PATH}/library" &
 
 # Start the frontend dev server
 cd /app/frontend

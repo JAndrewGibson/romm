@@ -133,13 +133,7 @@ onMounted(() => {
         </template>
         <template #item.avatar_path="{ item }">
           <v-avatar>
-            <v-img
-              :src="
-                item.avatar_path
-                  ? `/assets/romm/assets/${item.avatar_path}?ts=${item.updated_at}`
-                  : defaultAvatarPath
-              "
-            />
+            <v-img :src="item.avatar_url || defaultAvatarPath" />
           </v-avatar>
         </template>
         <template #item.username="{ item }">

@@ -157,9 +157,7 @@ function closeDialog() {
                   <v-img
                     :src="
                       imagePreviewUrl ||
-                      (user.avatar_path
-                        ? `/assets/romm/assets/${user.avatar_path}?ts=${user.updated_at}`
-                        : defaultAvatarPath)
+                      (user.avatar_url || defaultAvatarPath)
                     "
                   >
                     <v-fade-transition>

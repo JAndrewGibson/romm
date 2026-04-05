@@ -63,11 +63,7 @@ function closeDialog() {
         <span>Deleting</span>
         <v-avatar size="40" class="ml-1">
           <v-img
-            :src="
-              user.avatar_path
-                ? `/assets/romm/assets/${user.avatar_path}?ts=${user.updated_at}`
-                : defaultAvatarPath
-            "
+            :src="user.avatar_url || defaultAvatarPath"
           /> </v-avatar
         ><span class="text-primary ml-1">{{ user.username }}</span
         ><span class="ml-1">user. Do you confirm?</span>
