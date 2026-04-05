@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { Emitter } from "mitt";
 import { storeToRefs } from "pinia";
-import { inject, ref, onMounted, onUnmounted } from "vue";
+import { inject, ref, onMounted, onUnmounted, computed } from "vue";
 import { useI18n } from "vue-i18n";
+import { useRoute } from "vue-router";
 import RetroAchievements from "@/components/Settings/UserProfile/RetroAchievements.vue";
 import RSection from "@/components/common/RSection.vue";
 import userApi from "@/services/api/user";
@@ -20,7 +21,9 @@ const userToEdit = ref<UserItem | null>(null);
 const usersStore = storeUsers();
 const imagePreviewUrl = ref<string | undefined>("");
 const userStats = ref<UserStatsSchema | null>(null);
+const loadingStats = ref(false);
 const emitter = inject<Emitter<Events>>("emitter");
+const route = useRoute();
 
 function triggerFileInput() {
   const fileInput = document.getElementById("file-input");
@@ -75,11 +78,18 @@ onMounted(async () => {
   userToEdit.value = { ...user.value, password: "", avatar: undefined };
   if (userToEdit.value) {
     document.title = `${userToEdit.value.username} | Profile`;
+    
+    // Fetch stats for the user ID in the URL, or fallback to current user
+    const targetUserId = Number(route.params.user) || userToEdit.value.id;
+    
+    loadingStats.value = true;
     try {
-      const statsResponse = await userApi.fetchUserStats(userToEdit.value.id);
+      const statsResponse = await userApi.fetchUserStats(targetUserId);
       userStats.value = statsResponse.data;
     } catch (error) {
       console.error("Failed to fetch user stats:", error);
+    } finally {
+      loadingStats.value = false;
     }
   }
 });
@@ -208,9 +218,14 @@ onUnmounted(() => {
 
     <RetroAchievements class="mx-4 mt-8" />
 
-    <RSection v-if="userStats && userStats.top_played_roms.length" class="ma-4 mt-8" icon="mdi-chart-bar" title="Stats">
+    <RSection class="ma-4 mt-8" icon="mdi-chart-bar" title="Stats">
       <template #content>
-        <div class="pa-4">
+        <div v-if="loadingStats" class="pa-8 text-center">
+          <v-progress-circular indeterminate color="primary" />
+          <p class="mt-4 text-medium-emphasis">Loading statistics...</p>
+        </div>
+
+        <div v-else-if="userStats && userStats.top_played_roms.length" class="pa-4">
           <div v-for="(game, index) in userStats.top_played_roms" :key="game.id" class="mb-6">
             <div class="d-flex justify-space-between mb-1">
               <span class="text-subtitle-1 font-weight-bold">{{ game.name }}</span>
@@ -236,13 +251,10 @@ onUnmounted(() => {
             </div>
           </div>
         </div>
-      </template>
-    </RSection>
-    <RSection v-else-if="userStats" class="ma-4 mt-8" icon="mdi-chart-bar" title="Stats">
-      <template #content>
-        <div class="pa-8 text-center text-medium-emphasis">
+        
+        <div v-else class="pa-8 text-center text-medium-emphasis">
           <v-icon size="x-large" class="mb-2 opacity-30">mdi-timer-off-outline</v-icon>
-          <p>No playtime data available yet.</p>
+          <p>No playtime data available yet for this user.</p>
         </div>
       </template>
     </RSection>
