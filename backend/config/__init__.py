@@ -216,6 +216,10 @@ SCHEDULED_RETROACHIEVEMENTS_PROGRESS_SYNC_CRON: Final[str] = _get_env(
 DISABLE_EMULATOR_JS: Final[bool] = safe_str_to_bool(_get_env("DISABLE_EMULATOR_JS"))
 DISABLE_RUFFLE_RS: Final[bool] = safe_str_to_bool(_get_env("DISABLE_RUFFLE_RS"))
 
+# PLAYTIME & FRIENDS
+DISABLE_PLAYTIME_TRACKING: Final[bool] = safe_str_to_bool(_get_env("DISABLE_PLAYTIME_TRACKING"))
+DISABLE_FRIENDS_TAB: Final[bool] = safe_str_to_bool(_get_env("DISABLE_FRIENDS_TAB"))
+
 # FRONTEND
 KIOSK_MODE: Final[bool] = safe_str_to_bool(_get_env("KIOSK_MODE"))
 

@@ -29,6 +29,8 @@ class UserSchema(BaseModel):
     ra_username: str | None = None
     ra_progression: RAProgression | None = None
     ui_settings: dict | None = None
+    playtime_tracking_enabled: bool = True
+    friends_tab_visible: bool = True
 
     created_at: datetime
     updated_at: datetime

@@ -67,6 +67,8 @@ class User(BaseModel, SimpleUser):
     ui_settings: Mapped[dict[str, Any] | None] = mapped_column(
         CustomJSON(), default=dict
     )
+    playtime_tracking_enabled: Mapped[bool] = mapped_column(default=True)
+    friends_tab_visible: Mapped[bool] = mapped_column(default=True)
 
     saves: Mapped[list[Save]] = relationship(lazy="raise", back_populates="user")
     states: Mapped[list[State]] = relationship(lazy="raise", back_populates="user")

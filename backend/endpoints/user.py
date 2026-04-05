@@ -15,6 +15,7 @@ from handler.filesystem import fs_asset_handler
 from handler.metadata import meta_ra_handler
 from handler.metadata.ra_handler import RAUserProgression
 from logger.logger import log
+from config import KIOSK_MODE, DISABLE_PLAYTIME_TRACKING, DISABLE_FRIENDS_TAB
 from models.user import Role, User
 from utils.router import APIRouter
 from utils.validation import (
@@ -234,6 +235,14 @@ def get_user_stats(request: Request, id: int) -> UserStatsSchema:
     if request.user.id != id and request.user.role != Role.ADMIN:
          raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
 
+    # Global check
+    if DISABLE_PLAYTIME_TRACKING:
+        return UserStatsSchema(total_play_time_ms=0, top_played_roms=[])
+
+    # User check
+    if not user.playtime_tracking_enabled:
+        return UserStatsSchema(total_play_time_ms=0, top_played_roms=[])
+
     top_roms = db_rom_handler.get_top_played_roms(id, limit=5)
     
     top_played_schemas = []
@@ -259,10 +268,18 @@ def get_friends(request: Request) -> list[UserFriendSchema]:
     from handler.database import db_rom_handler
     from handler.database.base_handler import sync_session
 
+    # Global check
+    if DISABLE_FRIENDS_TAB:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Friends tab is disabled")
+
     users = db_user_handler.get_users()
     response = []
     
     for u in users:
+        # Skip users who disabled visibility
+        if not u.friends_tab_visible:
+            continue
+
         query, _ = db_rom_handler.get_roms_query(
             user_id=u.id, 
             order_by="last_played", 
@@ -437,6 +454,12 @@ async def update_user(
 
     if form_data.ra_username:
         cleaned_data["ra_username"] = form_data.ra_username  # type: ignore[assignment]
+
+    if form_data.playtime_tracking_enabled is not None:
+        cleaned_data["playtime_tracking_enabled"] = form_data.playtime_tracking_enabled
+
+    if form_data.friends_tab_visible is not None:
+        cleaned_data["friends_tab_visible"] = form_data.friends_tab_visible
 
     if form_data.ui_settings is not None:
         try:

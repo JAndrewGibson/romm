@@ -22,6 +22,8 @@ from config import (
     SCHEDULED_UPDATE_LAUNCHBOX_METADATA_CRON,
     SCHEDULED_UPDATE_SWITCH_TITLEDB_CRON,
     YOUTUBE_BASE_URL,
+    DISABLE_PLAYTIME_TRACKING,
+    DISABLE_FRIENDS_TAB,
 )
 from config.config_manager import config_manager as cm
 from decorators.auth import protected_route
@@ -114,6 +116,8 @@ async def heartbeat() -> HeartbeatResponse:
         "FRONTEND": {
             "DISABLE_USERPASS_LOGIN": DISABLE_USERPASS_LOGIN,
             "YOUTUBE_BASE_URL": YOUTUBE_BASE_URL,
+            "DISABLE_PLAYTIME_TRACKING": DISABLE_PLAYTIME_TRACKING,
+            "DISABLE_FRIENDS_TAB": DISABLE_FRIENDS_TAB,
         },
         "OIDC": {
             "ENABLED": OIDC_ENABLED,

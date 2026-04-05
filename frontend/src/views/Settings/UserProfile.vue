@@ -9,6 +9,7 @@ import RSection from "@/components/common/RSection.vue";
 import userApi from "@/services/api/user";
 import storeAuth from "@/stores/auth";
 import storeUsers from "@/stores/users";
+import storeHeartbeat from "@/stores/heartbeat";
 import type { Events } from "@/types/emitter";
 import type { UserItem } from "@/types/user";
 import type { UserStatsSchema } from "@/__generated__";
@@ -24,6 +25,7 @@ const userStats = ref<UserStatsSchema | null>(null);
 const loadingStats = ref(false);
 const emitter = inject<Emitter<Events>>("emitter");
 const route = useRoute();
+const heartbeat = storeHeartbeat();
 
 function triggerFileInput() {
   const fileInput = document.getElementById("file-input");
@@ -205,6 +207,25 @@ onUnmounted(() => {
             </v-list-item>
           </template>
         </v-select>
+
+        <div class="mx-4 mt-6">
+          <v-switch
+            v-if="!heartbeat.value.FRONTEND.DISABLE_PLAYTIME_TRACKING"
+            v-model="userToEdit.playtime_tracking_enabled"
+            color="primary"
+            label="Enable playtime tracking"
+            hide-details
+            class="mb-2"
+          />
+          <v-switch
+            v-if="!heartbeat.value.FRONTEND.DISABLE_FRIENDS_TAB"
+            v-model="userToEdit.friends_tab_visible"
+            color="primary"
+            label="Visible on Friends tab"
+            hide-details
+          />
+        </div>
+
         <v-btn
           :variant="!userToEdit.username ? 'plain' : 'flat'"
           :disabled="!userToEdit.username"
@@ -218,7 +239,12 @@ onUnmounted(() => {
 
     <RetroAchievements class="mx-4 mt-8" />
 
-    <RSection class="ma-4 mt-8" icon="mdi-chart-bar" title="Stats">
+    <RSection
+      v-if="!heartbeat.value.FRONTEND.DISABLE_PLAYTIME_TRACKING && userToEdit.playtime_tracking_enabled"
+      class="ma-4 mt-8"
+      icon="mdi-chart-bar"
+      title="Stats"
+    >
       <template #content>
         <div v-if="loadingStats" class="pa-8 text-center">
           <v-progress-circular indeterminate color="primary" />

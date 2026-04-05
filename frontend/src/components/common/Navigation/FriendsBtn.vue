@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 import { ROUTES } from "@/plugins/router";
+import storeHeartbeat from "@/stores/heartbeat";
+
+const heartbeat = storeHeartbeat();
 
 withDefaults(
   defineProps<{
@@ -20,6 +23,7 @@ const { t } = useI18n();
 </script>
 <template>
   <v-btn
+    v-if="!heartbeat.value.FRONTEND.DISABLE_FRIENDS_TAB"
     icon
     :block="block"
     variant="flat"

@@ -1562,7 +1562,10 @@ async def update_rom_user(
         cleaned_data.update({"last_played": None})
 
     if payload.add_play_time_ms > 0:
-        cleaned_data["play_time_ms"] = (db_rom_user.play_time_ms or 0) + payload.add_play_time_ms
+        # Check if playtime tracking is enabled
+        from config import DISABLE_PLAYTIME_TRACKING
+        if not DISABLE_PLAYTIME_TRACKING and request.user.playtime_tracking_enabled:
+            cleaned_data["play_time_ms"] = (db_rom_user.play_time_ms or 0) + payload.add_play_time_ms
 
     rom_user = db_rom_handler.update_rom_user(db_rom_user.id, cleaned_data)
 

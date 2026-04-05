@@ -12,6 +12,8 @@ class UserForm(BaseModel):
     ra_username: str | None = None
     avatar: UploadFile | None = None
     ui_settings: str | None = None
+    playtime_tracking_enabled: bool | None = None
+    friends_tab_visible: bool | None = None
 
 
 class OAuth2RequestForm:
