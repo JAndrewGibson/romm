@@ -251,29 +251,56 @@ onUnmounted(() => {
           <p class="mt-4 text-medium-emphasis">Loading statistics...</p>
         </div>
 
-        <div v-else-if="userStats && userStats.top_played_roms.length" class="pa-4">
-          <div v-for="(game, index) in userStats.top_played_roms" :key="game.id" class="mb-6">
-            <div class="d-flex justify-space-between mb-1">
-              <span class="text-subtitle-1 font-weight-bold">{{ game.name }}</span>
-              <span class="text-subtitle-2 opacity-70">{{ formatDuration(game.play_time_ms) }}</span>
-            </div>
-            <div class="d-flex align-center">
-              <div class="flex-grow-1 mr-4">
-                <v-progress-linear
-                  :model-value="(game.play_time_ms / userStats.top_played_roms[0].play_time_ms) * 100"
-                  height="32"
-                  rounded
-                  color="primary"
-                  class="stats-bar elevation-2"
-                >
-                  <template #default="{ value }">
-                    <span class="ml-4 text-caption font-weight-black opacity-50">{{ Math.ceil(value) }}%</span>
-                  </template>
-                </v-progress-linear>
+        <div v-else-if="userStats && (userStats.top_played_roms.length || userStats.total_play_time_ms > 0)" class="pa-4">
+          <!-- Overall Stats -->
+          <div class="mb-8 d-flex align-center">
+            <template v-if="userStats.total_play_time_ms > 0">
+              <div class="text-h2 font-weight-black mr-4 text-primary">
+                {{ formatDuration(userStats.total_play_time_ms).split(' ')[0].replace(/[a-z]/g, '') }}
               </div>
-              <v-avatar size="64" rounded="lg" class="elevation-4 border-sm">
-                <v-img :src="game.merged_screenshots?.[0] || game.url_cover" cover />
-              </v-avatar>
+              <div>
+                <div class="text-h6 font-weight-bold line-height-1">
+                  {{ formatDuration(userStats.total_play_time_ms).split(' ')[0].replace(/[0-9]/g, '') }}
+                  {{ formatDuration(userStats.total_play_time_ms).split(' ').slice(1).join(' ') }}
+                </div>
+                <div class="text-caption text-medium-emphasis">Total Playtime</div>
+              </div>
+            </template>
+            <template v-else>
+               <div class="text-h2 font-weight-black mr-4 text-primary">0</div>
+               <div>
+                 <div class="text-h6 font-weight-bold line-height-1">min</div>
+                 <div class="text-caption text-medium-emphasis">Total Playtime</div>
+               </div>
+            </template>
+          </div>
+
+          <!-- Top Played Games -->
+          <div v-if="userStats.top_played_roms.length">
+            <p class="text-overline mb-4 opacity-70">Top Played Games</p>
+            <div v-for="(game, index) in userStats.top_played_roms" :key="game.id" class="mb-6">
+              <div class="d-flex justify-space-between mb-1">
+                <span class="text-subtitle-1 font-weight-bold">{{ game.name }}</span>
+                <span class="text-subtitle-2 opacity-70">{{ formatDuration(game.play_time_ms) }}</span>
+              </div>
+              <div class="d-flex align-center">
+                <div class="flex-grow-1 mr-4">
+                  <v-progress-linear
+                    :model-value="(game.play_time_ms / userStats.top_played_roms[0].play_time_ms) * 100"
+                    height="32"
+                    rounded
+                    color="primary"
+                    class="stats-bar elevation-2"
+                  >
+                    <template #default="{ value }">
+                      <span class="ml-4 text-caption font-weight-black opacity-50">{{ Math.ceil(value) }}%</span>
+                    </template>
+                  </v-progress-linear>
+                </div>
+                <v-avatar size="64" rounded="lg" class="elevation-4 border-sm">
+                  <v-img :src="game.merged_screenshots?.[0] || game.url_cover" cover />
+                </v-avatar>
+              </div>
             </div>
           </div>
         </div>

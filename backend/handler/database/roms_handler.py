@@ -1456,7 +1456,15 @@ class DBRomsHandler(DBBaseHandler):
         return session.scalars(
             select(Rom)
             .join(RomUser, and_(RomUser.rom_id == Rom.id, RomUser.user_id == user_id))
-            .options(contains_eager(Rom.rom_users))
+            .options(
+                contains_eager(Rom.rom_users),
+                selectinload(Rom.platform),
+                selectinload(Rom.metadatum),
+                selectinload(Rom.files),
+                selectinload(Rom.sibling_roms),
+                selectinload(Rom.notes),
+                selectinload(Rom.collections),
+            )
             .filter(RomUser.play_time_ms > 0)
             .order_by(RomUser.play_time_ms.desc())
             .limit(limit)
