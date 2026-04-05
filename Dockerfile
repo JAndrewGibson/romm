@@ -69,6 +69,11 @@ COPY pyproject.toml uv.lock* .python-version /app/
 # Install Python dependencies
 RUN uv sync --all-extras
 
+# Copy source code
+COPY backend /app/backend
+COPY frontend /app/frontend
+COPY watcher.py /app/watcher.py
+
 ENV PATH="/app/.venv/bin:${PATH}"
 
 # Copy entrypoint script

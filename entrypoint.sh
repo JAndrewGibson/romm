@@ -41,7 +41,7 @@ fi
 # Start all services in the background
 echo "Starting backend..."
 cd /app/backend
-uv run python main.py &
+DEV_PORT=${PORT:-8080} uv run python main.py &
 
 echo "Starting RQ scheduler..."
 RQ_REDIS_HOST=${REDIS_HOST:-127.0.0.1} \
@@ -72,10 +72,11 @@ PYTHONPATH="/app/backend:${PYTHONPATH-}" rq worker \
 	high default low &
 
 echo "Starting watcher..."
+cd /app
 watchfiles \
 	--target-type command \
 	'uv run python watcher.py' \
-	/app/romm/library &
+	/romm_data/library &
 
 # Start the frontend dev server
 cd /app/frontend
