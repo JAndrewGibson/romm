@@ -20,6 +20,7 @@ export type UserSchema = {
     ui_settings?: (Record<string, any> | null);
     playtime_tracking_enabled: boolean;
     friends_tab_visible: boolean;
+    current_device_id?: (string | null);
     created_at: string;
     updated_at: string;
 };

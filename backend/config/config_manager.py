@@ -1,4 +1,6 @@
 import enum
+import functools
+import glob
 import json
 import os
 import sys
@@ -45,7 +47,7 @@ DEFAULT_EXCLUDED_FILES: Final = [
     ".stfolder",
     "@SynoResource",
     "gamelist.xml",
-    "metadata.pegasus.xml",
+    "metadata.pegasus.txt",
 ]
 DEFAULT_EXCLUDED_DIRS: Final = [
     "@eaDir",
@@ -108,12 +110,12 @@ class Config:
     EXCLUDED_MULTI_PARTS_EXT: list[str]
     EXCLUDED_MULTI_PARTS_FILES: list[str]
     GAMELIST_AUTO_EXPORT_ON_SCAN: bool
+    PEGASUS_AUTO_EXPORT_ON_SCAN: bool
     PLATFORMS_BINDING: dict[str, str]
     PLATFORMS_VERSIONS: dict[str, str]
     ROMS_FOLDER_NAME: str
     FIRMWARE_FOLDER_NAME: str
     SKIP_HASH_CALCULATION: bool
-    HIGH_PRIO_STRUCTURE_PATH: str
     EJS_DEBUG: bool
     EJS_CACHE_LIMIT: int | None
     EJS_DISABLE_AUTO_UNLOAD: bool
@@ -127,10 +129,21 @@ class Config:
     SCAN_REGION_PRIORITY: list[str]
     SCAN_LANGUAGE_PRIORITY: list[str]
     SCAN_MEDIA: list[str]
+    GAMELIST_MEDIA_THUMBNAIL: MetadataMediaType
+    GAMELIST_MEDIA_IMAGE: MetadataMediaType
 
     def __init__(self, **entries):
         self.__dict__.update(entries)
-        self.HIGH_PRIO_STRUCTURE_PATH = f"{LIBRARY_BASE_PATH}/{self.ROMS_FOLDER_NAME}"
+
+    @functools.cached_property
+    def has_structure_path_b(self) -> bool:
+        pattern = os.path.join(
+            LIBRARY_BASE_PATH, "*", glob.escape(self.ROMS_FOLDER_NAME)
+        )
+        for match in glob.iglob(pattern):
+            if os.path.isdir(match):
+                return True
+        return False
 
 
 class ConfigManager:
@@ -295,9 +308,6 @@ class ConfigManager:
             FIRMWARE_FOLDER_NAME=pydash.get(
                 self._raw_config, "filesystem.firmware_folder", "bios"
             ),
-            GAMELIST_AUTO_EXPORT_ON_SCAN=pydash.get(
-                self._raw_config, "scan.export_gamelist", False
-            ),
             SKIP_HASH_CALCULATION=pydash.get(
                 self._raw_config, "filesystem.skip_hash_calculation", False
             ),
@@ -339,9 +349,11 @@ class ConfigManager:
                 self._raw_config,
                 "scan.priority.artwork",
                 [
+                    "sgdb",
                     "igdb",
                     "moby",
                     "ss",
+                    "libretro",
                     "ra",
                     "launchbox",
                     "gamelist",
@@ -369,6 +381,22 @@ class ConfigManager:
                     "screenshot",
                     "manual",
                 ],
+            ),
+            GAMELIST_AUTO_EXPORT_ON_SCAN=pydash.get(
+                self._raw_config, "scan.gamelist.export", False
+            ),
+            GAMELIST_MEDIA_THUMBNAIL=pydash.get(
+                self._raw_config,
+                "scan.gamelist.media.thumbnail",
+                MetadataMediaType.BOX2D,
+            ),
+            GAMELIST_MEDIA_IMAGE=pydash.get(
+                self._raw_config,
+                "scan.gamelist.media.image",
+                MetadataMediaType.SCREENSHOT,
+            ),
+            PEGASUS_AUTO_EXPORT_ON_SCAN=pydash.get(
+                self._raw_config, "scan.pegasus.export", False
             ),
         )
 
@@ -439,8 +467,13 @@ class ConfigManager:
                 "Invalid config.yml: exclude.roms.multi_file.parts.names must be a list"
             )
             sys.exit(3)
+
         if not isinstance(self.config.GAMELIST_AUTO_EXPORT_ON_SCAN, bool):
-            log.critical("Invalid config.yml: scan.export_gamelist must be a boolean")
+            log.critical("Invalid config.yml: scan.gamelist.export must be a boolean")
+            sys.exit(3)
+
+        if not isinstance(self.config.PEGASUS_AUTO_EXPORT_ON_SCAN, bool):
+            log.critical("Invalid config.yml: scan.pegasus.export must be a boolean")
             sys.exit(3)
 
         if not isinstance(self.config.PLATFORMS_BINDING, dict):
@@ -586,6 +619,42 @@ class ConfigManager:
                 )
                 sys.exit(3)
 
+        valid_thumbnail_options = {
+            MetadataMediaType.BOX2D,
+            MetadataMediaType.BOX3D,
+            MetadataMediaType.MIXIMAGE,
+            MetadataMediaType.PHYSICAL,
+        }
+        if not isinstance(self.config.GAMELIST_MEDIA_THUMBNAIL, str):
+            log.critical(
+                "Invalid config.yml: scan.gamelist.media.thumbnail must be a string"
+            )
+            sys.exit(3)
+        if self.config.GAMELIST_MEDIA_THUMBNAIL not in valid_thumbnail_options:
+            log.critical(
+                f"Invalid config.yml: scan.gamelist.media.thumbnail must be one of {valid_thumbnail_options}"
+            )
+            sys.exit(3)
+
+        valid_image_options = {
+            MetadataMediaType.TITLE_SCREEN,
+            MetadataMediaType.MIXIMAGE,
+            MetadataMediaType.BOX2D,
+            MetadataMediaType.SCREENSHOT,
+        }
+
+        if not isinstance(self.config.GAMELIST_MEDIA_IMAGE, str):
+            log.critical(
+                "Invalid config.yml: scan.gamelist.media.image must be a string"
+            )
+            sys.exit(3)
+
+        if self.config.GAMELIST_MEDIA_IMAGE not in valid_image_options:
+            log.critical(
+                f"Invalid config.yml: scan.gamelist.media.image must be one of {valid_image_options}"
+            )
+            sys.exit(3)
+
     def get_config(self) -> Config:
         try:
             with open(self.config_file, "r") as config_file:
@@ -623,6 +692,7 @@ class ConfigManager:
             "filesystem": {
                 "roms_folder": self.config.ROMS_FOLDER_NAME,
                 "firmware_folder": self.config.FIRMWARE_FOLDER_NAME,
+                "skip_hash_calculation": self.config.SKIP_HASH_CALCULATION,
             },
             "system": {
                 "platforms": self.config.PLATFORMS_BINDING,
@@ -648,7 +718,16 @@ class ConfigManager:
                     "language": self.config.SCAN_LANGUAGE_PRIORITY,
                 },
                 "media": self.config.SCAN_MEDIA,
-                "export_gamelist": self.config.GAMELIST_AUTO_EXPORT_ON_SCAN,
+                "gamelist": {
+                    "export": self.config.GAMELIST_AUTO_EXPORT_ON_SCAN,
+                    "media": {
+                        "thumbnail": self.config.GAMELIST_MEDIA_THUMBNAIL,
+                        "image": self.config.GAMELIST_MEDIA_IMAGE,
+                    },
+                },
+                "pegasus": {
+                    "export": self.config.PEGASUS_AUTO_EXPORT_ON_SCAN,
+                },
             },
         }
 

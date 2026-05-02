@@ -2,17 +2,9 @@ from unittest.mock import Mock, patch
 
 import pytest
 from fastapi import status
-from fastapi.testclient import TestClient
-from main import app
 from rq.exceptions import NoSuchJobError
 
 from tasks.tasks import Task, TaskType
-
-
-@pytest.fixture
-def client():
-    with TestClient(app) as client:
-        yield client
 
 
 @pytest.fixture
@@ -62,7 +54,7 @@ def create_mock_job(job_id="1", status="queued"):
     from datetime import datetime
 
     mock_job = Mock()
-    mock_job.get_id.return_value = job_id
+    mock_job.id = job_id
     mock_job.get_status.return_value = status
 
     # Create mock datetime objects with isoformat methods
@@ -403,7 +395,7 @@ class TestGetTaskById:
         }
         mock_job.func_name = "test_task"
         mock_job.get_status.return_value = "finished"
-        mock_job.get_id.return_value = "test-job-id-123"
+        mock_job.id = "test-job-id-123"
         mock_job.result = {"status": "completed"}
 
         mock_job_fetch.return_value = mock_job
@@ -466,7 +458,7 @@ class TestGetTaskById:
         }
         mock_job.func_name = "test_task"
         mock_job.get_status.return_value = "failed"
-        mock_job.get_id.return_value = "failed-job-id"
+        mock_job.id = "failed-job-id"
         mock_job.result = {"error": "Task failed"}
 
         mock_job_fetch.return_value = mock_job

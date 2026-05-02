@@ -11,6 +11,7 @@ from config import (
     ENABLE_SCHEDULED_RETROACHIEVEMENTS_PROGRESS_SYNC,
     ENABLE_SCHEDULED_UPDATE_LAUNCHBOX_METADATA,
     ENABLE_SCHEDULED_UPDATE_SWITCH_TITLEDB,
+    ENABLE_SYNC_PUSH_PULL,
     SENTRY_DSN,
 )
 from handler.metadata.base_handler import (
@@ -26,6 +27,7 @@ from handler.redis_handler import async_cache
 from logger.logger import log
 from models.firmware import FIRMWARE_FIXTURES_DIR, KNOWN_BIOS_KEY
 from tasks.scheduled.cleanup_netplay import cleanup_netplay_task
+from tasks.scheduled.cleanup_upload_tmp import cleanup_upload_tmp_task
 from tasks.scheduled.convert_images_to_webp import convert_images_to_webp_task
 from tasks.scheduled.scan_library import scan_library_task
 from tasks.scheduled.sync_retroachievements_progress import (
@@ -33,6 +35,7 @@ from tasks.scheduled.sync_retroachievements_progress import (
 )
 from tasks.scheduled.update_launchbox_metadata import update_launchbox_metadata_task
 from tasks.scheduled.update_switch_titledb import update_switch_titledb_task
+from tasks.sync_push_pull_task import sync_push_pull_task
 from utils import get_version
 from utils.cache import conditionally_set_cache
 from utils.context import initialize_context
@@ -49,6 +52,7 @@ async def main() -> None:
 
         # Initialize scheduled tasks
         cleanup_netplay_task.init()
+        cleanup_upload_tmp_task.init()
 
         if ENABLE_SCHEDULED_RESCAN:
             log.info("Starting scheduled rescan")
@@ -65,6 +69,9 @@ async def main() -> None:
         if ENABLE_SCHEDULED_RETROACHIEVEMENTS_PROGRESS_SYNC:
             log.info("Starting scheduled RetroAchievements progress sync")
             sync_retroachievements_progress_task.init()
+        if ENABLE_SYNC_PUSH_PULL:
+            log.info("Starting scheduled push-pull sync")
+            sync_push_pull_task.init()
 
         log.info("Initializing cache with fixtures data")
         await conditionally_set_cache(

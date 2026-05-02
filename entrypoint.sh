@@ -70,7 +70,8 @@ RQ_REDIS_HOST=${REDIS_HOST:-127.0.0.1} \
 	RQ_REDIS_SSL=${REDIS_SSL:-0} \
 	rqscheduler \
 	--path /app/backend \
-	--pid /tmp/rq_scheduler.pid &
+	--pid /tmp/rq_scheduler.pid \
+	--logging_level "${LOGLEVEL:-INFO}" &
 
 echo "Starting RQ worker..."
 # Build Redis URL properly
@@ -87,6 +88,7 @@ PYTHONPATH="/app/backend:${PYTHONPATH-}" rq worker \
 	--path /app/backend \
 	--pid /tmp/rq_worker.pid \
 	--url "${REDIS_URL}" \
+	--logging_level "${LOGLEVEL:-INFO}" \
 	high default low &
 
 echo "Starting watcher..."
@@ -95,6 +97,14 @@ watchfiles \
 	--target-type command \
 	'uv run python watcher.py' \
 	"${ROMM_BASE_PATH}/library" &
+
+if [[ ${ENABLE_SYNC_FOLDER_WATCHER:-false} == "true" ]]; then
+	echo "Starting sync folder watcher..."
+	watchfiles \
+		--target-type command \
+		'uv run python sync_watcher.py' \
+		/app/romm/sync &
+fi
 
 # Start the frontend dev server
 cd /app/frontend

@@ -97,7 +97,9 @@ async function loginOIDC() {
 }
 
 onMounted(async () => {
-  if (oidcEnabled && oidcAutologin) {
+  const params = new URLSearchParams(window.location.search);
+  const bypassAutologin = params.get("bypass_autologin") === "true";
+  if (oidcEnabled && oidcAutologin && !bypassAutologin) {
     loginOIDC();
   }
 });
@@ -107,11 +109,7 @@ onMounted(async () => {
   <v-card class="translucent py-8 px-5" width="500">
     <v-img src="/assets/isotipo.svg" class="mx-auto mb-8" width="80" />
     <v-expand-transition>
-      <v-row
-        v-if="!forgotMode"
-        class="text-white justify-center mt-2"
-        no-gutters
-      >
+      <v-row v-if="!forgotMode" class="justify-center mt-2" no-gutters>
         <v-col cols="10">
           <v-form
             v-if="!loginDisabled"
@@ -220,7 +218,7 @@ onMounted(async () => {
     <v-expand-transition>
       <v-row
         v-if="forgotMode && !loginDisabled"
-        class="text-white justify-center mt-2"
+        class="justify-center mt-2"
         no-gutters
       >
         <v-col cols="10">

@@ -1,9 +1,6 @@
 from unittest.mock import patch
 
-import pytest
 from fastapi import status
-from fastapi.testclient import TestClient
-from main import app
 
 from config.config_manager import (
     DEFAULT_EXCLUDED_DIRS,
@@ -11,12 +8,6 @@ from config.config_manager import (
     DEFAULT_EXCLUDED_FILES,
 )
 from config.config_manager import config_manager as cm
-
-
-@pytest.fixture
-def client():
-    with TestClient(app) as client:
-        yield client
 
 
 def test_config(client):
@@ -36,6 +27,8 @@ def test_config(client):
     assert config.get("EXCLUDED_MULTI_PARTS_FILES") == sorted(DEFAULT_EXCLUDED_FILES)
     assert config.get("PLATFORMS_BINDING") == {}
     assert not config.get("SKIP_HASH_CALCULATION")
+    assert config.get("GAMELIST_MEDIA_THUMBNAIL") == "box2d"
+    assert config.get("GAMELIST_MEDIA_IMAGE") == "screenshot"
 
 
 def test_add_platform_binding_payload_shape(client, access_token: str):

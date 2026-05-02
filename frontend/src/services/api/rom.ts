@@ -5,7 +5,7 @@ import type {
   BulkOperationResponse,
   DetailedRomSchema,
   ManualMetadata,
-  RomUserUpdatePayload,
+  RomUserData,
   RomUserSchema,
   SearchRomSchema,
   SimpleRomSchema,
@@ -67,7 +67,12 @@ async function uploadRomChunked({
           onUploadProgress: (progressEvent: AxiosProgressEvent) => {
             const chunkFraction = progressEvent.progress ?? 0;
             const overall = ((i + chunkFraction) / totalChunks) * 100;
-            uploadStore.updateChunkProgress(file.name, overall, file.size);
+            uploadStore.updateChunkProgress(
+              file.name,
+              overall,
+              file.size,
+              progressEvent.rate,
+            );
           },
         });
         lastError = null;
@@ -447,6 +452,7 @@ async function updateRom({
     ["hasheous_id", toFormIdValue(rom.hasheous_id)],
     ["tgdb_id", toFormIdValue(rom.tgdb_id)],
     ["hltb_id", toFormIdValue(rom.hltb_id)],
+    ["libretro_id", toFormIdValue(rom.libretro_id)],
   ];
 
   if (rom.manual_metadata) {
@@ -546,7 +552,11 @@ async function updateUserRomProps({
   addPlayTimeMs = undefined,
 }: {
   romId: number;
+<<<<<<< HEAD
   data?: Partial<RomUserSchema>;
+=======
+  data: Partial<RomUserData>;
+>>>>>>> upstream/master
   updateLastPlayed?: boolean;
   removeLastPlayed?: boolean;
   addPlayTimeMs?: number;
